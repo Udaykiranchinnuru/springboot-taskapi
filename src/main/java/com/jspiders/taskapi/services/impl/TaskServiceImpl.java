@@ -1,9 +1,8 @@
 package com.jspiders.taskapi.services.impl;
 
-import com.jspiders.taskapi.data.tasks.CreateTaskRequest;
-import com.jspiders.taskapi.data.tasks.Task;
-import com.jspiders.taskapi.data.tasks.TaskRepository;
-import com.jspiders.taskapi.data.tasks.UpdateTaskRequest;
+import com.jspiders.taskapi.data.tags.TagRepository;
+import com.jspiders.taskapi.data.tags.Tags;
+import com.jspiders.taskapi.data.tasks.*;
 import com.jspiders.taskapi.data.users.AppUserRepository;
 import com.jspiders.taskapi.services.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -11,10 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class TaskServiceImpl implements TaskService {
     private final ObjectMapper mapper;
     private final TaskRepository taskRepository;
     private final AppUserRepository appUserRepository;
+    private final TagRepository tagRepository;
 
     @Override
     public ResponseEntity<Task> createTask(CreateTaskRequest createTaskRequest)
@@ -70,5 +72,29 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public ResponseEntity<String> deleteTaskByID(Long taskId) {
         return null;
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<AssignTagToTaskResponse> addTagToTask(Long taskId, Long tagId) {
+        Task task = taskRepository.findById(taskId).orElseThrow();
+        log.info("task {} ",task);
+        Set<Tags> tags;
+
+        tags = task.getTags();
+
+        Tags tag = tagRepository.findById(tagId).orElseThrow();
+
+        tags.add(tag);
+        task.setTags(tags);
+
+        taskRepository.save(task);
+
+        AssignTagToTaskResponse response = new AssignTagToTaskResponse();
+        response.setTaskId(task.getTaskId());
+        response.setTitle(task.getTitle());
+        response.setTags(task.getTags());
+
+        return ResponseEntity.ok(response);
     }
 }

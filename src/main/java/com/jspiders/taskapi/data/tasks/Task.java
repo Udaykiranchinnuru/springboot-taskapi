@@ -1,8 +1,12 @@
 package com.jspiders.taskapi.data.tasks;
 
+import com.jspiders.taskapi.data.tags.Tags;
 import com.jspiders.taskapi.data.users.AppUser;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Entity
@@ -18,8 +22,6 @@ public class Task
 
     @Column(name = "title",nullable = false)
     private String title;
-
-
 
     @Column(name = "description",nullable = false)
     private String description;
@@ -49,5 +51,11 @@ public class Task
     @JoinColumn(name = "userId")
 
     private AppUser appUser;
+
+    @ManyToMany
+    @JoinTable(name = "task_tags_ids",
+            joinColumns = @JoinColumn(name = "taskId"),
+            inverseJoinColumns = @JoinColumn(name = "tagId"))
+    private Set<Tags> tags = new HashSet<>();
 
 }
